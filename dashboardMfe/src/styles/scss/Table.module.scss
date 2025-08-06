@@ -1,0 +1,104 @@
+.tableWrapper {
+    overflow-x: auto;
+    width: 100%;
+    max-width: 100%;
+    // max-height: calc(100vh - 197px);
+}
+
+
+.table {
+    width: max-content;
+    min-width: 100%;
+    border-collapse: collapse;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.cell {
+    border: 1px solid #ddd;
+    padding: 8px;
+    min-width: 180px;
+    height: 50px;
+    word-wrap: break-word;
+    // transition: background-color 0.8s ease
+}
+
+.highlightedCell {
+    // background-color: #f3f19f;
+    font-weight: bold;
+}
+
+.highlightedRow {
+    background-color: #ddd !important;
+    border: 2px solid #aba80a !important;
+}
+
+.row:nth-child(even) {
+    background-color: #fbfbfb;
+}
+
+.row:hover {
+    background-color: #ddd;
+}
+
+.rowSelected {
+    background-color: #ddd !important;
+    border: 2px solid #696464 !important;
+}
+
+.header {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+    background-color: white;
+    color: black;
+    height: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    min-width: 180px;
+    .sortIcon {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+    }
+}
+
+.tableBody {
+    width: max-content;
+    min-width: 100%;
+    max-height: 490px;
+    overflow-y: scroll;
+
+    // Hide scrollbar by default
+    &::-webkit-scrollbar {
+        width: 3px;
+        background: transparent;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background-color: transparent;
+        transition: background-color 0.3s;
+        border-radius: 25px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: transparent;
+    }
+
+    // Show thumb on hover
+    &:hover::-webkit-scrollbar-thumb {
+        background-color: rgba(31, 30, 30, 0.3);
+    }
+
+    &::-webkit-scrollbar-thumb:hover {
+        background-color: #5e5e5e;
+        ; // darker on hover
+    }
+
+    &:hover::-webkit-scrollbar-track {
+        background-color: #f5f5f5;
+    }
+}
+
+.tableHeader {
+    margin-right: 3px;
+}

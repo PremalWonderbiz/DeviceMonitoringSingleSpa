@@ -1,0 +1,20 @@
+@use './utilities.scss' as *;
+
+.badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.6rem;
+    border-radius: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+@each $name, $color in $colors {
+  .badgebg--#{$name} {
+    background-color: $color;
+  }
+
+  .badgetext--#{$name} {
+    color: $color;
+  }
+}

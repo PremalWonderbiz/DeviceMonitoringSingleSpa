@@ -1,0 +1,87 @@
+.sidebar {
+    position: absolute;
+    top: 0;
+    width: 350px;
+    height: 100%;
+    background-color: white;
+    color: black;
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+    box-sizing: border-box;
+    border-radius: 5px;
+    z-index: 20;
+}
+
+.left {
+    left: 0;
+    transform: translateX(-100%);
+}
+
+.right {
+    right: 0;
+    transform: translateX(105%);
+}
+
+.open {
+    transform: translateX(0);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.closeButton {
+    background-color: transparent;
+    border: none;
+    color: black;
+    margin: 0.5rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer
+}
+
+.closeIcon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    z-index: 1001;
+    width: 50px;
+    height: 65px;
+    background-color: #ffffff;
+    border: 2px solid #4b4b4b;
+    transition: right 0.4s ease, left 0.4s ease;
+    display: flex;
+    align-items: center;
+    border-radius: 10px;
+}
+
+.rightCloseIcon{
+    right: -20px;
+    justify-content: end;
+}
+
+.rightCloseIcon:hover{
+    right: -30px;
+}
+
+.leftCloseIcon{
+    left: -23px;
+    justify-content: start;
+}
+
+.leftCloseIcon:hover{
+    left: -33px;
+}
+
+.closeIcon:hover {  
+    border-color: #000;
+}
+
+.sidebarCloseIcon{
+    transition: color .2s ease-in;
+}
+
+.sidebarCloseIcon:hover {
+    //  stroke-width: 1.8px;
+    color: #464646;
+}

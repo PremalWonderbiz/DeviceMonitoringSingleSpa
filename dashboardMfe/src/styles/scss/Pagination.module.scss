@@ -1,0 +1,65 @@
+.paginationContainer {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    padding: 1rem;
+    width: 100%;
+    overflow-x: auto;
+}
+
+.middleSection{
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.rightSection{
+    font-size: 0.9rem;
+    color: #666;
+    margin-left: 1rem;
+}
+
+.paginationButton{
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background-color: #fff;
+  color: #000;
+  cursor: pointer;
+  min-width: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.activeButton{
+    background-color: #222;
+    color: #fff;
+}
+
+.pageSizeSelector{
+    padding: 0.5rem;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+    background-color: #222;
+    font-size: 0.9rem;
+    appearance: none;
+    color: #fff;
+    appearance: none;
+  padding-right: 2rem;
+}
+
+
+.selectWrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.selectIcon {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  pointer-events: none;
+  transform: translateY(-50%);
+  color: #fff;
+}
