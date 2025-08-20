@@ -159,6 +159,10 @@
         fill: #28a745;
     }
 
+    .ackAlarmStateIgnoreIcon{
+        fill: #fbc02d;
+    }
+
     .alarmCard {
 
         .time {
@@ -197,16 +201,6 @@
             text-align: start;
             cursor: pointer;
         }
-
-        .resolveBtn {
-            position: relative;
-            width: 90px;
-        }
-
-        .ignoreBtn{
-            position: relative;
-            width: 80px;
-        }   
 
         .resolveCommentIcon {
             position: absolute;
@@ -328,6 +322,16 @@
     width: 100%;
 }
 
+.resolveCommentInput {
+    background-color: transparent;
+    border-radius: 5px;
+    border: 1px solid #c1c1c1;
+    color: #e7e7e7;
+    padding: 0.2rem 0.5rem;
+    width: 100%;
+    font-size: 0.85rem;
+}
+
 .acknowledgedAlarmsFilter{
     padding: 0.5rem 0.7rem 0 0.7rem;
     width: 100%;
@@ -408,7 +412,7 @@
   right: 10px;
   background: transparent;
   border: none;
-  color: #fff;
+  color: #181818;
   font-size: 18px;
   cursor: pointer;
 }

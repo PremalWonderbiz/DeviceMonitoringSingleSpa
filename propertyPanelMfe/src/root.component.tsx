@@ -16,6 +16,8 @@ export function registerPropsUpdater(registerFn: (updater: (props: any) => void)
 }
 
 export default function Root(initialProps: any) {
+  console.log(initialProps);
+  
   const [customProps, setCustomProps] = useState(initialProps.customProps);
 
   useEffect(() => {

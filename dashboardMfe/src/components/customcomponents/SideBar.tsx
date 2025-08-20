@@ -1,7 +1,7 @@
 import React, { ReactNode, useState } from "react";
 import * as styles from "@/styles/scss/Sidebar.module.scss";
 import { ChevronLeft, ChevronRight, RectangleVertical, X } from "lucide-react";
-import { Tooltip } from "@/components/ui/tooltip";
+import { Tooltip } from "../ui/tooltip";
 
 type SidebarProps = {
   position?: "left" | "right";
@@ -11,11 +11,12 @@ type SidebarProps = {
   closeSidebar? : () => void;
   closeIconMsg : any;
   openIconMsg : any;
+  zIndex : string;
 };
 
-const Sidebar = ({closeIconMsg, openIconMsg, position = "left", children, isOpen = false, setIsOpen = (isOpen: boolean) => { }, closeSidebar = () => {}}: SidebarProps) => {
+const Sidebar = ({zIndex, closeIconMsg, openIconMsg, position = "left", children, isOpen = false, setIsOpen = (isOpen: boolean) => { }, closeSidebar = () => {}}: SidebarProps) => {
   return (
-    <div className={`${styles.sidebar} ${styles[position]} ${isOpen ? styles.open : ""}`}>
+    <div className={`${styles.sidebar} ${styles[position]} ${isOpen ? styles.open : ""} ${styles[zIndex]}`}>
       {position=="left" ? 
       isOpen ? <button data-testid="Leftsidebar-close-button" className={styles.closeButton} onClick={() => setIsOpen(false)}> 
                 <Tooltip openDelay={100} closeDelay={150} content={<span className="p-2">{closeIconMsg}</span>}>

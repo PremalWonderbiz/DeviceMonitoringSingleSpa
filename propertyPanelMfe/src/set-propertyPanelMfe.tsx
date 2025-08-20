@@ -25,6 +25,6 @@ export const { bootstrap, mount, unmount } = lifecycles;
 export async function update(props: any) {
   console.log("Parcel updated with new props:", props);
   if (latestPropsUpdater) {
-    latestPropsUpdater(props.customProps); // Send updated props to React
+    latestPropsUpdater(props.customProps);
   }
 }

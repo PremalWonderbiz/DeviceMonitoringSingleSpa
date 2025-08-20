@@ -48,6 +48,7 @@ declare module "http://localhost:8082/set-alarmPanelMfe.js" {
   export default parcel;
 }
 
+
 declare module "*.module.scss" {
   const classes: { [key: string]: string };
   export = classes;

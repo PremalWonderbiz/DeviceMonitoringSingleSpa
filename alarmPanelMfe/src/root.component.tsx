@@ -1,16 +1,17 @@
 import "@/styles/globals.css";
 import "@/styles/scss/utilities.scss";
-import { Provider } from "@/components/ui/provider"
+import { Provider } from "@/components/ui/provider";
 import AlarmPanel from "@/components/customcomponents/AlarmPanel/AlarmPanel";
-import 'rsuite/dist/rsuite-no-reset.min.css';
-import { CustomProvider } from 'rsuite';
-import { Portal } from "@chakra-ui/react"
-import { useEffect, useRef, useState } from "react";
+import "rsuite/dist/rsuite-no-reset.min.css";
+import { CustomProvider } from "rsuite";
+import { Portal } from "@chakra-ui/react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
-// External bridge for props
 let setParcelPropsExternally: ((props: any) => void) | null = null;
 
-export function registerPropsUpdater(registerFn: (updater: (props: any) => void) => void) {
+export function registerPropsUpdater(
+  registerFn: (updater: (props: any) => void) => void
+) {
   registerFn((newProps) => {
     if (setParcelPropsExternally) {
       setParcelPropsExternally(newProps);
@@ -19,23 +20,32 @@ export function registerPropsUpdater(registerFn: (updater: (props: any) => void)
 }
 
 export default function Root(initialProps: any) {
-  const containerRef = useRef(null);
+  const containerRef = useRef<HTMLDivElement | null>(null);
   const [customProps, setCustomProps] = useState(initialProps.customProps);
+  const [isReady, setIsReady] = useState(false);  
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setParcelPropsExternally = (newProps: any) => {
       setCustomProps(newProps);
     };
+
+    if (containerRef.current) {
+      setIsReady(true);
+    }
   }, []);
+
+
   return (
     <CustomProvider>
       <Provider>
         <div ref={containerRef}>
-        <Portal container={containerRef}>
-        <AlarmPanel {...customProps} />
-        </Portal>
-        {/* <section>{props.customProps ? props.customProps.name : props.name} is mounted!</section>   */}
+          {isReady && (
+            <Portal container={containerRef}>
+              <AlarmPanel {...customProps} />
+            </Portal>
+          )}
         </div>
       </Provider>
-    </CustomProvider>);
+    </CustomProvider>
+  );
 }

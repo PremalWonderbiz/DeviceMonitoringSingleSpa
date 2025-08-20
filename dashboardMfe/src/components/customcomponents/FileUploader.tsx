@@ -27,6 +27,10 @@ const FileUploader = (props: any) => {
                 setError("Only .json files are allowed.");
             }
         }
+
+        if (inputRef.current) {
+            inputRef.current.value = "";
+        }
     };
 
     const handleClear = () => {

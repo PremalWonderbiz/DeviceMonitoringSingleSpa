@@ -6,6 +6,7 @@ import { useDeviceAlertSocket } from "@/utils/customhooks/useDeviceAlertSocket";
 import { useAccordionState } from "@/components/customcomponents/Propertypanel/AccordionVisibilityContext";
 import { renderKeyValueSection, renderObject } from "@/utils/propertypanelfunctions";
 import Badge from "@/components/customcomponents/Badge";
+import { Alarm, AlarmUpdateMessage } from "@/models/propertyPanelInterfaces";
 
 export const StaticTabContent = React.memo(({ staticProps }: { staticProps: any }) => {
   return (
@@ -33,16 +34,20 @@ export const HealthTabContent = React.memo(
     deviceMacId,
     dynamicProps,
   }: any) => {
-    const [alarm, setAlarm] = useState<any>(null);
-    const [totalAlarmsForDevice, setTotalAlarmsForDevice] = useState<any>(0);
-    const accordionContext = useAccordionState();    
+    const [alarm, setAlarm] = useState<Alarm | null>(null);
+    const [totalAlarmsForDevice, setTotalAlarmsForDevice] = useState<number>(0);
+    const accordionContext = useAccordionState();
 
     const collapsedTitlesToHighlight = useMemo(() => {
       return getCollapsedAncestorsToHighlight(highlightedPaths, accordionContext?.state || {});
     }, [highlightedPaths, accordionContext?.state]);
 
     const handleAlertUpdates = (msg: string) => {
-      const incomingUpdates = JSON.parse(msg);
+      if (msg == "") {
+        setAlarm(null);
+        setTotalAlarmsForDevice(0);
+      }
+      const incomingUpdates: AlarmUpdateMessage = JSON.parse(msg);
       if (incomingUpdates) {
         setAlarm(incomingUpdates.alarm);
         setTotalAlarmsForDevice(incomingUpdates.totalAlarms);
@@ -87,7 +92,7 @@ export const HealthTabContent = React.memo(
                 >
                   View related alarms
                   <span className="ml-2">
-                    <Badge label={totalAlarmsForDevice} bgColor="neutral" textColor="dark" />
+                    <Badge label={totalAlarmsForDevice.toString()} bgColor="neutral" textColor="dark" />
                   </span>
                 </button>
               </div>
@@ -116,9 +121,3 @@ export const HealthTabContent = React.memo(
 
   }
 );
-
-
-
-
-
-

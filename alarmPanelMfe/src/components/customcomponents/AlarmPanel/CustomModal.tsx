@@ -2,13 +2,12 @@ import React, { useRef, useState } from "react";
 import * as styles from "@/styles/scss/AlarmPanel.module.scss";
 
 const CustomModal = ({
-  setAlarmComment,
   isOpen,
   setIsOpen,
   title,
   footer = true,
-  defaultComment
-}: any) => {
+  actionFunction = () => {},
+}: any) => {  
   const [tempAlarmComment, setTempAlarmComment] = useState<string>("");
   const commentTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -30,7 +29,10 @@ const CustomModal = ({
   const handleClose = () => setIsOpen(false);
 
   const handleSave = () => {
-    setAlarmComment(tempAlarmComment);
+    if(tempAlarmComment === "") {
+      return;
+    }
+    actionFunction(tempAlarmComment);
     setIsOpen(false);
   };
 
@@ -42,7 +44,7 @@ const CustomModal = ({
       <h3 className={styles.modalTitle}>{title}</h3>
       <div className={styles.commentInputWrapper}>
         <textarea
-          defaultValue={defaultComment}
+          defaultValue={""}
           onChange={(event: any) => changeAlarmComment(event.target.value)}
           className={styles.resolveCommentInput}
           placeholder="Comment"

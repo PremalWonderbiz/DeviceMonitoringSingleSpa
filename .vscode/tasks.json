@@ -1,0 +1,23 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Start All MFEs (Windows)",
+      "type": "shell",
+      "command": "start-all.bat",
+      "windows": {
+        "command": "${workspaceFolder}\\start-all.bat"
+      },
+      "problemMatcher": [],
+      "isBackground": true,
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared",
+        "showReuseMessage": false,
+        "clear": false
+      }
+    }
+  ]
+}

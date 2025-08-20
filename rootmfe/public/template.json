@@ -1,0 +1,21 @@
+{
+  "FileName": "Basic Device Template",
+  "Name": "Basic Device Template",
+  "Type": "Smart AC",
+  "staticProperties": {
+    "Model": "optional",
+    "Manufacturer": "optional"
+  },
+  "dynamicProperties": {
+    "Temperature": {
+      "type": "float",
+      "min": 16,
+      "max": 30,
+      "unit": "°C"
+    }, 
+    "Status": {
+      "type": "enum",
+      "values": ["Online", "Offline", "Error"]
+    }
+  }
+}

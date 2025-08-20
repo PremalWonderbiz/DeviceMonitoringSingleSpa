@@ -2,7 +2,7 @@ import Badge from "@/components/customcomponents/Badge";
 import TableComponent from "@/components/customcomponents/Table/TableComponent";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDevicesTopDataSocket } from "@/utils/customhooks/useDevicesTopDataSocket";
-import { BellRing, FileUp, ListX, RefreshCw, Repeat, UserPen } from "lucide-react";
+import { BellRing, ListX, Repeat, UserPen } from "lucide-react";
 import { getAllDataRefereshedFromCache, getDeviceMetadataPaginatedandSorted, getDevicesNameMacIdList, getDevicesTopLevelData, getMacIdToFileNameMap, getSearchedDeviceMetadataPaginated } from "@/services/deviceservice";
 import * as styles from "@/styles/scss/Home.module.scss";
 import PopOver from "@/components/chakrauicomponents/PopOver";
@@ -15,11 +15,13 @@ import { AlarmPopUp } from "@/components/customcomponents/AlarmPopUp";
 import Sidebar from "@/components/customcomponents/SideBar";
 import Parcel from 'single-spa-react/parcel';
 import { Tooltip } from "@/components/ui/tooltip";
-import AlarmToggle from "./components/customcomponents/AlarmToggle";
+import AlarmToggle from "@/components/customcomponents/AlarmToggle";
+import LazyParcelLoader from "@/LazyParcelLoader";
+import { Alarm, AlarmResponse, Device, DeviceFileNameMap, DeviceNameMac, DeviceUpdateMessage, UpdatedFieldsMap } from "@/models/allInterfaces";
 
 export default function Home({ mountParcel }) {
-  const [deviceData, setDeviceData] = useState<any[]>([]);
-  const [deviceFileNames, setDeviceFileNames] = useState<any>();
+  const [deviceData, setDeviceData] = useState<Device[]>([]);
+  const [deviceFileNames, setDeviceFileNames] = useState<DeviceFileNameMap>({});
   const initialTabState = "Health"; // Default active tab
   const [activeTab, setActiveTab] = useState(initialTabState);
   const [isPropertyPanelOpen, setIsPropertyPanelOpen] = useState<boolean>(false);
@@ -28,8 +30,8 @@ export default function Home({ mountParcel }) {
   const [isAlarmPanelOpen, setIsAlarmPanelOpen] = useState<boolean>(false);
   const [isAlarmPopOverOpen, setIsAlarmPopOverOpen] = useState<boolean>(false);
   const [isProfilePopOverOpen, setIsProfilePopOverOpen] = useState<boolean>(false);
-  const [latestAlarms, setLatestAlarms] = useState<any[]>([]);
-  const [totalAlarms, setTotalAlarms] = useState<any>(0);
+  const [latestAlarms, setLatestAlarms] = useState<Alarm[]>([]);
+  const [totalAlarms, setTotalAlarms] = useState<number>(0);
   const [selectedDevicePropertyPanel, setSelectedDevicePropertyPanel] = useState<any>(null);
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
@@ -38,40 +40,19 @@ export default function Home({ mountParcel }) {
   const [refreshDeviceDataKey, setRefreshDeviceDataKey] = useState(0);
   const [hardRefreshDeviceDataKey, setHardRefreshDeviceDataKey] = useState(0);
   const [searchInput, setSearchInput] = useState<any>(null);
-  const [updatedFieldsMap, setUpdatedFieldsMap] = useState<{ [macId: string]: string[] } | null>(null);
+  const [updatedFieldsMap, setUpdatedFieldsMap] = useState<UpdatedFieldsMap | null>(null);
   const highlightTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-  const [devicesNameMacList, setDevicesNameMacList] = useState<any[] | null>(null);
-  const [sorting, setSorting] = useState<SortingState>([]);
+  const [devicesNameMacList, setDevicesNameMacList] = useState<DeviceNameMac[] | null>(null); const [sorting, setSorting] = useState<SortingState>([]);
   const justRefreshedRef = useRef(false);
-  const pendingHighlightRef = useRef<{ [macId: string]: string[] } | null>(null);
+  const pendingHighlightRef = useRef<UpdatedFieldsMap | null>(null);
   const searchInputTimeoutRef = useRef<any>(null);
   const [shouldRenderAlarmParcel, setShouldRenderAlarmParcel] = useState(false);
   const [shouldRenderPropertyParcel, setShouldRenderPropertyParcel] = useState(false);
-
-
-  useEffect(() => {
-    setTotalPages(Math.ceil(totalCount / pageSize));
-    setCurrentPage(1);
-  }, [pageSize, totalCount]);
-
-  useEffect(() => {
-    const fetchLatestAlarmData = async () => {
-      const response = await getLatestAlarms();
-      if (!response)
-        console.log("Network response was not ok");
-
-      if (response && response.data) {
-        setLatestAlarms(response.data.alarms);
-        setTotalAlarms(response.data.totalAlarms);
-      }
-    };
-
-    fetchLatestAlarmData();
-  }, []);
+  const [parcelRetryKey, setParcelRetryKey] = useState(0);
 
   // Handle incoming SignalR updates for devices top level data
   const handleUpdate = useCallback((msg: string) => {
-    const rawDevices = JSON.parse(msg);
+    const rawDevices: DeviceUpdateMessage[] = JSON.parse(msg);
     console.log("WebSocket update received", rawDevices);
 
     const isDefaultSorting =
@@ -92,18 +73,18 @@ export default function Home({ mountParcel }) {
         const updatedDevice = { ...existingDevice };
 
         if ("Status" in incoming && incoming.Status !== existingDevice.status) {
-          updatedDevice.status = incoming.Status;
+          updatedDevice.status = incoming.Status!;
           changedFields.push("status");
         }
 
         if ("Connectivity" in incoming && incoming.Connectivity !== existingDevice.connectivity) {
-          updatedDevice.connectivity = incoming.Connectivity;
+          updatedDevice.connectivity = incoming.Connectivity!;
           changedFields.push("connectivity");
         }
 
 
         if ("LastUpdated" in incoming) {
-          updatedDevice.lastUpdated = incoming.LastUpdated;
+          updatedDevice.lastUpdated = incoming.LastUpdated!;
         }
 
         if (changedFields.length > 0) {
@@ -119,12 +100,12 @@ export default function Home({ mountParcel }) {
 
       if (hasChange) {
         console.log("Devices updated:", updatedMacIds);
-        // If not on page 1, skip highlight and reordering
-        if (currentPage !== 1) {
-          setRefreshDeviceDataKey(prev => prev + 1);
-          justRefreshedRef.current = true;
-          return prevDevices;
-        }
+        // If not on page 1, skip highlight and reordering(commenting this code as of now as suggested changes in demo)
+        // if (currentPage !== 1) {
+        //   setRefreshDeviceDataKey(prev => prev + 1);
+        //   justRefreshedRef.current = true;
+        //   return prevDevices;
+        // }
 
         if (justRefreshedRef.current) {
           setTimeout(() => {
@@ -187,6 +168,39 @@ export default function Home({ mountParcel }) {
 
   }, [sorting, currentPage, searchInput]);
 
+  // SignalR connection for devices top level data
+  useDevicesTopDataSocket(handleUpdate);
+
+  //Handle incoming signalR updates for dashboard alarms pop up
+  const handleAlertUpdates = useCallback((msg: string) => {
+    const incomingUpdates: AlarmResponse = JSON.parse(msg);
+
+    setLatestAlarms(incomingUpdates.alarms);
+    setTotalAlarms(incomingUpdates.totalAlarms);
+  }, []);
+
+  //signalR for alarms data
+  useDeviceAlertSocket("sampleDeviceId", handleAlertUpdates, "ReceiveMainPageUpdates");
+
+  useEffect(() => {
+    setTotalPages(Math.ceil(totalCount / pageSize));
+    setCurrentPage(1);
+  }, [pageSize, totalCount]);
+
+  useEffect(() => {
+    const fetchLatestAlarmData = async () => {
+      const response = await getLatestAlarms();
+      if (!response)
+        console.log("Network response was not ok");
+
+      if (response && response.data) {
+        setLatestAlarms(response.data.alarms);
+        setTotalAlarms(response.data.totalAlarms);
+      }
+    };
+
+    fetchLatestAlarmData();
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -195,19 +209,6 @@ export default function Home({ mountParcel }) {
       }
     };
   }, []);
-
-  const handleAlertUpdates = useCallback((msg: string) => {
-    const incomingUpdates = JSON.parse(msg);
-
-    setLatestAlarms(incomingUpdates.alarms);
-    setTotalAlarms(incomingUpdates.totalAlarms);
-  }, []);
-
-  // SignalR connection for devices top level data
-  useDevicesTopDataSocket(handleUpdate);
-
-  //signalR for alarms data
-  useDeviceAlertSocket("sampleDeviceId", handleAlertUpdates, "ReceiveMainPageUpdates");
 
   // Initial data fetch
   useEffect(() => {
@@ -306,14 +307,16 @@ export default function Home({ mountParcel }) {
     } else {
       setShouldRenderAlarmParcel(false);
     }
+  }, [isAlarmPanelOpen]);
 
+  useEffect(() => {
     if (isPropertyPanelOpen) {
       const timer = setTimeout(() => setShouldRenderPropertyParcel(true), 50);
       return () => clearTimeout(timer);
     } else {
       setShouldRenderPropertyParcel(false);
     }
-  }, [isAlarmPanelOpen, isPropertyPanelOpen]);
+  }, [isPropertyPanelOpen]);
 
   const changeSearchInput = (value: string) => {
     if (value == null || value == "")
@@ -366,7 +369,7 @@ export default function Home({ mountParcel }) {
                   }}
                 />
                 <div className={styles.badgeConainer}>
-                  <Badge label={totalAlarms} bgColor="darkgrayColor" textColor="light" />
+                  <Badge label={totalAlarms.toString()} bgColor="darkgrayColor" textColor="light" />
                 </div>
               </div>
             }
@@ -388,27 +391,40 @@ export default function Home({ mountParcel }) {
       </div>
 
       <div className='m-3'>
-        {totalAlarms > 0 &&
-          <Sidebar openIconMsg={"Open Alarm Panel"} closeIconMsg={"Close Alarm Panel"} position="left" isOpen={isAlarmPanelOpen} setIsOpen={setIsAlarmPanelOpen} >
-            {(isAlarmPanelOpen && shouldRenderAlarmParcel) &&
-              // <AlarmPanel devicesNameMacList={devicesNameMacList} setSelectedDevicePropertyPanel={setSelectedDevicePropertyPanel} selectedDevicePropertyPanel={selectedDevicePropertyPanel} />
-              <Parcel
-                config={() => import("http://localhost:8082/set-alarmPanelMfe.js").then((mod: any) => ({
-                  bootstrap: mod.bootstrap,
-                  mount: mod.mount,
-                  unmount: mod.unmount,
-                  update: mod.update
-                }))}
-                mountParcel={mountParcel}
-                customProps={{
+        <Sidebar zIndex="zIndex300" openIconMsg={"Open Alarm Panel"} closeIconMsg={"Close Alarm Panel"} position="left" isOpen={isAlarmPanelOpen} setIsOpen={setIsAlarmPanelOpen} >
+          {(isAlarmPanelOpen && shouldRenderAlarmParcel) &&
+            // <AlarmPanel devicesNameMacList={devicesNameMacList} setSelectedDevicePropertyPanel={setSelectedDevicePropertyPanel} selectedDevicePropertyPanel={selectedDevicePropertyPanel} />
+            <LazyParcelLoader
+              retryKey={parcelRetryKey}
+              setRetryKey={setParcelRetryKey}
+              parcelUrl="@set/alarmPanelMfe"
+              parcelProps={{
+                customProps: {
                   setSelectedDevicePropertyPanel: setSelectedDevicePropertyPanel,
                   selectedDevicePropertyPanel: selectedDevicePropertyPanel,
                   devicesNameMacList: devicesNameMacList,
                   name: "Alarm Panel"
-                }}
-              />
-            }
-          </Sidebar>}
+                }
+              }}
+              mountParcel={mountParcel}
+            />
+            // <Parcel
+            //   config={() => import("http://localhost:8082/set-alarmPanelMfe.js").then((mod: any) => ({
+            //     bootstrap: mod.bootstrap,
+            //     mount: mod.mount,
+            //     unmount: mod.unmount,
+            //     update: mod.update
+            //   }))}
+            //   mountParcel={mountParcel}
+            //   customProps={{
+            //     setSelectedDevicePropertyPanel: setSelectedDevicePropertyPanel,
+            //     selectedDevicePropertyPanel: selectedDevicePropertyPanel,
+            //     devicesNameMacList: devicesNameMacList,
+            //     name: "Alarm Panel"
+            //   }}
+            // />
+          }
+        </Sidebar>
 
         <div>
           <span className={`py-3 ${styles.mainPageTitle}`}>Welcome back, Premal Kadam</span>
@@ -438,34 +454,56 @@ export default function Home({ mountParcel }) {
             <TableComponent currentDeviceId={currentDeviceId} sorting={sorting} setSorting={setSorting} refreshDeviceDataKey={refreshDeviceDataKey} updatedFieldsMap={updatedFieldsMap} totalPages={totalPages} pageSize={pageSize} setPageSize={setPageSize} setCurrentPage={setCurrentPage} currentPage={currentPage} data={deviceData} setIsPropertyPanelOpen={openPropertypanel} />
           </div>
           {(deviceData && deviceData.length > 0) &&
-            <Sidebar openIconMsg={"Open Property Panel"} closeIconMsg={"Close Property Panel"} position="right" isOpen={isPropertyPanelOpen} setIsOpen={setIsPropertyPanelOpen} closeSidebar={closePropertyPanel}>
+            <Sidebar zIndex="zIndex200" openIconMsg={"Open Property Panel"} closeIconMsg={"Close Property Panel"} position="right" isOpen={isPropertyPanelOpen} setIsOpen={setIsPropertyPanelOpen} closeSidebar={closePropertyPanel}>
               {(isPropertyPanelOpen && shouldRenderPropertyParcel) &&
                 // <PropertyPanel deviceFileNames={deviceFileNames} devicesNameMacList={devicesNameMacList} setCurrentDeviceId={setCurrentDeviceId} setCurrentDeviceFileName={setCurrentDeviceFileName} setIsAlarmPanelOpen={setIsAlarmPanelOpen} setSelectedDevicePropertyPanel={setSelectedDevicePropertyPanel} activeTab={activeTab} setActiveTab={setActiveTab} currentDeviceId={currentDeviceId} currentDeviceFileName={currentDeviceFileName} />
-                <Parcel
-                  // key={`${currentDeviceId}-${currentDeviceFileName}-${activeTab}`}
-                  config={() => import("http://localhost:8081/set-propertyPanelMfe.js").then((mod: any) => ({
-                    bootstrap: mod.bootstrap,
-                    mount: mod.mount,
-                    unmount: mod.unmount,
-                    update: mod.update
-                  }))}
-                  mountParcel={mountParcel}
-                  customProps={{
-                    deviceFileNames: deviceFileNames,
-                    devicesNameMacList: devicesNameMacList,
-                    setCurrentDeviceId: setCurrentDeviceId,
-                    setCurrentDeviceFileName: setCurrentDeviceFileName,
-                    setIsAlarmPanelOpen: setIsAlarmPanelOpen,
-                    setSelectedDevicePropertyPanel: setSelectedDevicePropertyPanel,
-                    activeTab: activeTab,
-                    setActiveTab: setActiveTab,
-                    currentDeviceId: currentDeviceId,
-                    currentDeviceFileName: currentDeviceFileName,
-                    name: "Property Panel"
+                <LazyParcelLoader
+                  retryKey={parcelRetryKey}
+                  setRetryKey={setParcelRetryKey}
+                  parcelUrl="@set/propertyPanelMfe"
+                  parcelProps={{
+                    customProps: {
+                      deviceFileNames: deviceFileNames,
+                      devicesNameMacList: devicesNameMacList,
+                      setCurrentDeviceId: setCurrentDeviceId,
+                      setCurrentDeviceFileName: setCurrentDeviceFileName,
+                      setIsAlarmPanelOpen: setIsAlarmPanelOpen,
+                      setSelectedDevicePropertyPanel: setSelectedDevicePropertyPanel,
+                      activeTab: activeTab,
+                      setActiveTab: setActiveTab,
+                      currentDeviceId: currentDeviceId,
+                      currentDeviceFileName: currentDeviceFileName,
+                      name: "Property Panel"
+                    }
                   }}
+                  mountParcel={mountParcel}
                 />
+                // <Parcel
+                //   // key={`${currentDeviceId}-${currentDeviceFileName}-${activeTab}`}
+                //   config={() => import("http://localhost:8081/set-propertyPanelMfe.js").then((mod: any) => ({
+                //     bootstrap: mod.bootstrap,
+                //     mount: mod.mount,
+                //     unmount: mod.unmount,
+                //     update: mod.update
+                //   }))}
+                //   mountParcel={mountParcel}
+                //   customProps={{
+                //     deviceFileNames: deviceFileNames,
+                //     devicesNameMacList: devicesNameMacList,
+                //     setCurrentDeviceId: setCurrentDeviceId,
+                //     setCurrentDeviceFileName: setCurrentDeviceFileName,
+                //     setIsAlarmPanelOpen: setIsAlarmPanelOpen,
+                //     setSelectedDevicePropertyPanel: setSelectedDevicePropertyPanel,
+                //     activeTab: activeTab,
+                //     setActiveTab: setActiveTab,
+                //     currentDeviceId: currentDeviceId,
+                //     currentDeviceFileName: currentDeviceFileName,
+                //     name: "Property Panel"
+                //   }}
+                // />
               }
-            </Sidebar>}
+            </Sidebar>
+          }
         </div>
       </div>
     </div>
